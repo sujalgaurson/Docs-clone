@@ -14,13 +14,57 @@ import {
 } from '@/components/ui/menubar'
 import { MenubarSub, MenubarSubContent, MenubarSubTrigger } from '@radix-ui/react-menubar'
 import { FileJson2Icon, FilePenIcon, FilePlus2, FileTextIcon, Globe2Icon, GlobeIcon, PrinterIcon, Redo2Icon, RemoveFormattingIcon, SaveIcon, Table2, TextIcon, Trash2Icon, UndoIcon } from 'lucide-react'
-import { Html } from 'next/document'
 import { BsFilePdf } from 'react-icons/bs'
+import { useEditorStore } from '@/Store/Use-editor-store'
+import { blob } from 'stream/consumers'
+import { Content } from 'next/font/google'
 
 
 
 
 export const Navbar = () => {
+    const { editor } = useEditorStore();
+
+    const InstertTable = (rows: number, cols: number) => {
+        const table = editor?.chain().focus().insertTable({ rows, cols }).run();
+    };
+
+    const onDownload = (blob: Blob, fileName: string) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+    }
+
+    const onSaveJson = () => {
+        const json = editor?.getJSON();
+        const blob = new Blob([JSON.stringify(json)], { 
+            type: 'application/json' 
+        });
+        onDownload(blob, `document.json`); //Use document name TODO
+    }
+
+    const onSaveHtml = () => {
+        if (!editor) return;
+
+        const Content = editor?.getHTML();
+        const blob = new Blob([Content], { 
+            type: 'text/html' 
+        });
+        onDownload(blob, `document.html`); //Use document name TODO
+    }
+
+    const onSaveText = () => {
+        if (!editor) return;
+
+        const Content = editor?.getText();
+        const blob = new Blob([Content], { 
+            type: 'text/plain' 
+        });
+        onDownload(blob, `document.txt`); //Use document name TODO
+    }
+
   return (
     <nav className='flex items-center justify-between'>
         <div className='flex gap-2 items-center'>
@@ -42,19 +86,19 @@ export const Navbar = () => {
                                         Save
                                     </MenubarSubTrigger>
                                     <MenubarSubContent>
-                                        <MenubarItem className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
+                                        <MenubarItem onClick={onSaveJson} className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
                                             <FileJson2Icon className='mr-2' />
                                             JSON
                                         </MenubarItem>
-                                        <MenubarItem className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
+                                        <MenubarItem onClick={()=> window.print()} className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
                                             <BsFilePdf className='mr-2 size-6' />
                                             PDF
                                         </MenubarItem>
-                                        <MenubarItem className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
+                                        <MenubarItem onClick={onSaveHtml} className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
                                             <GlobeIcon className='mr-2' />
                                             HTML
                                         </MenubarItem>
-                                        <MenubarItem className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
+                                        <MenubarItem onClick={onSaveText} className='flex items-center gap-1 p-2 border shadow-md text-sm bg-white'>
                                             <FileTextIcon className='mr-2' />
                                             Text
                                         </MenubarItem>
@@ -93,12 +137,12 @@ export const Navbar = () => {
                         <MenubarTrigger>Edit</MenubarTrigger>
                             <MenubarContent className='print:hidden'>
 
-                                <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                <MenubarItem onClick={() => editor?.chain().focus().undo().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                     <UndoIcon className='mr-2' />
                                     Undo <MenubarShortcut>⌘Z</MenubarShortcut>
                                 </MenubarItem>
 
-                                <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                <MenubarItem onClick={() => editor?.chain().focus().redo().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                     <Redo2Icon className='mr-2' />
                                     Redo <MenubarShortcut>⌘Y</MenubarShortcut>
                                 </MenubarItem>
@@ -116,14 +160,16 @@ export const Navbar = () => {
                                         Table
                                     </MenubarSubTrigger>
                                     <MenubarSubContent className='bg-white shadow-md border rounded-md'>
-                                        <MenubarItem>
+                                        <MenubarItem onClick={() => InstertTable(1, 1)} >
                                             1 x 1
                                         </MenubarItem>
-                                        <MenubarItem>
+                                        <MenubarItem onClick={() => InstertTable(2, 2)}>
                                             2 x 2
-                                        </MenubarItem><MenubarItem>
+                                        </MenubarItem>
+                                        <MenubarItem onClick={() => InstertTable(3, 3)}>
                                             3 x 3
-                                        </MenubarItem><MenubarItem>
+                                        </MenubarItem>
+                                        <MenubarItem onClick={() => InstertTable(4, 4)}>
                                             4 x 4
                                         </MenubarItem>
                                     </MenubarSubContent>
@@ -141,24 +187,24 @@ export const Navbar = () => {
                                     Text
                                 </MenubarSubTrigger>
                                 <MenubarSubContent className='bg-white shadow-md border rounded-md p-1'>
-                                    <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                    <MenubarItem onClick={()=> editor?.chain().focus().toggleBold().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                         <span className='font-bold mr-2'>B</span>
                                         Bold <MenubarShortcut>⌘B</MenubarShortcut>
                                     </MenubarItem>
-                                    <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                    <MenubarItem onClick={()=> editor?.chain().focus().toggleItalic().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                         <span className='italic mr-2'>I</span>
                                         Italic <MenubarShortcut>⌘I</MenubarShortcut>
                                     </MenubarItem>
-                                    <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                    <MenubarItem onClick={()=> editor?.chain().focus().toggleUnderline().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                         <span className='underline mr-2'>U</span>
                                         Underline <MenubarShortcut>⌘U</MenubarShortcut>
                                     </MenubarItem>
-                                    <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                    <MenubarItem onClick={()=> editor?.chain().focus().toggleStrike().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                         <span className='line-through mr-2'>S</span>
                                         Strikethrough <MenubarShortcut>⌘Shift+X</MenubarShortcut>
                                     </MenubarItem>
                                 </MenubarSubContent>
-                                <MenubarItem className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
+                                <MenubarItem onClick={()=> editor?.chain().focus().unsetAllMarks().run()} className='flex items-center p-1 text-sm focus:outline-none cursor-pointer'>
                                     <RemoveFormattingIcon className='mr-2' />
                                     Clear Formating
                                 </MenubarItem>
