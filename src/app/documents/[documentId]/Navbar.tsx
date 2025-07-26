@@ -18,6 +18,7 @@ import { BsFilePdf } from 'react-icons/bs'
 import { useEditorStore } from '@/Store/Use-editor-store'
 import { blob } from 'stream/consumers'
 import { Content } from 'next/font/google'
+import { OrganizationSwitcher, UserButton } from '@clerk/nextjs'
 
 
 
@@ -216,6 +217,15 @@ export const Navbar = () => {
                 </Menubar>
             </div>
         </div>
+        <div className="flex items-center gap-3 pl-6">
+        <OrganizationSwitcher 
+          afterCreateOrganizationUrl="/"
+          afterLeaveOrganizationUrl="/"
+          afterSelectOrganizationUrl="/"
+          afterSelectPersonalUrl="/"
+         />
+        <UserButton/>
+      </div>
     </nav>
   )
 }
