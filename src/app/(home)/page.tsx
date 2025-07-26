@@ -1,5 +1,6 @@
 "use client"
 import { usePaginatedQuery } from 'convex/react'
+import { useSearchParams } from '../../hooks/use-search-params'
 
 import { api } from '../../../convex/_generated/api'
 import {Navbar} from './Navbar'
@@ -9,11 +10,12 @@ import { DocumentTable } from './documents-table'
 
 // ✅ Change 'page' to 'Page' (capitalized)
 const Page = () => {
+  const [search] = useSearchParams();
   const {
           results,
           status,
           loadMore
-  } = usePaginatedQuery(api.Documents.get, {}, {initialNumItems: 5});
+  } = usePaginatedQuery(api.Documents.get, { search }, {initialNumItems: 5});
 
   return (
     <div className='min-h-screen flex flex-col'>

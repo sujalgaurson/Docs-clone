@@ -46,7 +46,7 @@ export const RemoveDialog = ({ documentId, children }: RemoveDialogProps) => {
                         onClick={(e)=>{
                             e.stopPropagation();
                             setIsRemoving(true);
-                            remove({ Id : documentId })
+                            remove({ id : documentId })
                                 .finally(() => setIsRemoving(false));
                         }}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90">

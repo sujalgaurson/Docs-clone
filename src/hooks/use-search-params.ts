@@ -1,5 +1,4 @@
 import {parseAsString, useQueryState} from 'nuqs';
-import { parse } from 'path';
 
 export function useSearchParams() {
 

@@ -11,24 +11,67 @@ export const create = mutation({
       throw new ConvexError("Unauthorized");
     }
 
+    const organizationId = (User.organizationId ?? undefined) as string | undefined;
+
     return await ctx.db.insert("documents", {
       title: args.title ?? "Untitled Document",
       ownerId: User.subject,
+      organizationId,
       initialContent: args.initialContent,
     });
   }
 })
 
 export const get = query({
-  args: { paginationOpts: paginationOptsValidator },
-  handler: async (ctx, args) => {
-    return await ctx.db.query("documents").paginate(args.paginationOpts);
+  args: { paginationOpts: paginationOptsValidator, search: v.optional(v.string()) },
+  handler: async (ctx,{search, paginationOpts}) => {
+    const User = await ctx.auth.getUserIdentity();
+
+    if (!User) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    const organizationId = (User.organizationId ?? undefined) as | string | undefined;
+
+    //search within an organization
+    if(search && organizationId) {
+      return await ctx.db
+        .query("documents")
+        .withSearchIndex('search_title',(q)=>
+          q.search("title", search).eq("organizationId", organizationId)
+        )
+        .paginate(paginationOpts);
+    }
+
+    //search within the user's documents
+    if (search) {
+      return await ctx.db
+        .query("documents")
+        .withSearchIndex('search_title',(q)=>
+          q.search("title", search).eq("ownerId", User.subject)
+        )
+        .paginate(paginationOpts);
+    }
+
+    //All docs inside an organization
+    if (organizationId) {
+      return await ctx.db
+        .query("documents")
+        .withIndex("byOrganization", (q) => q.eq("organizationId", organizationId))
+        .paginate(paginationOpts);
+    }
+
+    //All personal docs
+    return await ctx.db
+        .query("documents")
+        .withIndex("byOwner", (q) => q.eq("ownerId", User.subject))
+        .paginate(paginationOpts);
     // do something with `documents`
   },
 });
 
 export const removeById = mutation({
-  args: { Id: v.id("documents") },
+  args: { id: v.id("documents") },
   handler: async (ctx, args) => {
     const User = await ctx.auth.getUserIdentity();
 
@@ -36,7 +79,7 @@ export const removeById = mutation({
       throw new ConvexError("Unauthorized");
     }
 
-    const document = await ctx.db.get(args.Id);
+    const document = await ctx.db.get(args.id);
 
     if (!document) {
       throw new ConvexError("Document not found");
@@ -47,12 +90,12 @@ export const removeById = mutation({
       throw new ConvexError("Unauthorized: You are not the owner of this document");
     }
 
-    await ctx.db.delete(args.Id);
+    await ctx.db.delete(args.id);
   }
 })
 
 export const updateById = mutation({
-  args: { Id: v.id("documents") , title: v.string()},
+  args: { id: v.id("documents") , title: v.string()},
   handler: async (ctx, args) => {
     const User = await ctx.auth.getUserIdentity();
 
@@ -60,7 +103,7 @@ export const updateById = mutation({
       throw new ConvexError("Unauthorized");
     }
 
-    const document = await ctx.db.get(args.Id);
+    const document = await ctx.db.get(args.id);
 
     if (!document) {
       throw new ConvexError("Document not found");
@@ -71,6 +114,6 @@ export const updateById = mutation({
       throw new ConvexError("Unauthorized: You are not the owner of this document");
     }
 
-    await ctx.db.patch(args.Id, { title: args.title });
+    await ctx.db.patch(args.id, { title: args.title });
   }
 })
