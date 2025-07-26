@@ -26,3 +26,51 @@ export const get = query({
     // do something with `documents`
   },
 });
+
+export const removeById = mutation({
+  args: { Id: v.id("documents") },
+  handler: async (ctx, args) => {
+    const User = await ctx.auth.getUserIdentity();
+
+    if (!User) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    const document = await ctx.db.get(args.Id);
+
+    if (!document) {
+      throw new ConvexError("Document not found");
+    }
+
+    const isOwner = document.ownerId === User.subject;
+    if (!isOwner) {
+      throw new ConvexError("Unauthorized: You are not the owner of this document");
+    }
+
+    await ctx.db.delete(args.Id);
+  }
+})
+
+export const updateById = mutation({
+  args: { Id: v.id("documents") , title: v.string()},
+  handler: async (ctx, args) => {
+    const User = await ctx.auth.getUserIdentity();
+
+    if (!User) {
+      throw new ConvexError("Unauthorized");
+    }
+
+    const document = await ctx.db.get(args.Id);
+
+    if (!document) {
+      throw new ConvexError("Document not found");
+    }
+
+    const isOwner = document.ownerId === User.subject;
+    if (!isOwner) {
+      throw new ConvexError("Unauthorized: You are not the owner of this document");
+    }
+
+    await ctx.db.patch(args.Id, { title: args.title });
+  }
+})

@@ -3,11 +3,12 @@ import { Doc } from "../../../convex/_generated/dataModel";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LoaderIcon } from "lucide-react";
 import { DocumentsRow } from "./DocumentsRow";
+import { Button } from "@/components/ui/button";
 
 interface DocumentTableProps {
     documents: Doc<"documents">[] | undefined;
-    status: PaginationStatus;
     loadMore: (numItems : number) => void;
+    status: PaginationStatus;
 }
 
 export const DocumentTable = ({ documents, status, loadMore }: DocumentTableProps) => {
@@ -45,6 +46,16 @@ export const DocumentTable = ({ documents, status, loadMore }: DocumentTableProp
                 )}
             </Table>
         )}
+        <div className="flex justify-center items-center mt-4 ">
+            <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => loadMore(5)}
+                disabled={ status !== "CanLoadMore" }
+            >
+                {status === "CanLoadMore" ? "Load More" : "No More Documents"}
+            </Button>
+        </div>
     </div>
   );
 };

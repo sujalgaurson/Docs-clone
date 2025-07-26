@@ -5,6 +5,7 @@ import { Building2Icon, CircleUserIcon, MoreVertical } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { DocumentMenu } from "./document-menu";
+import { useRouter } from "next/navigation";
 
 interface DocumentsRowProps {
     document: Doc<"documents">;
@@ -12,12 +13,16 @@ interface DocumentsRowProps {
 
 export const DocumentsRow = ({ document } : DocumentsRowProps) => {
 
+    const router = useRouter();
+
     const onNewtabClick = () => {
         window.open(`/documents/${document._id}`, "_blank");
     };
     
     return (
-        <TableRow className="cursor-pointer">
+        <TableRow 
+            onClick={()=> router.push(`/documents/${document._id}`)}
+            className="cursor-pointer">
             <TableCell className="w-[50px]">
                 <SiGoogledocs className="size-6 fill-blue-500"/>
             </TableCell>
@@ -37,13 +42,13 @@ export const DocumentsRow = ({ document } : DocumentsRowProps) => {
                 {format(new Date(document._creationTime), "MMM dd, yyyy")}
             </TableCell>
             <TableCell className="flex justify-end">
-                <Button variant="ghost" size="icon" className="rounded-full">
+            
                     <DocumentMenu 
                         documentId={document._id}
                         title={document.title}
                         onNewTab={onNewtabClick}
                     />
-                </Button>
+    
             </TableCell>
         </TableRow>
     )
