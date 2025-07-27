@@ -27,9 +27,8 @@ import { FontSizeExtension } from '@/extensions/Font-size'
 import { LineHeightExtension } from '@/extensions/Line-height'
 
 export const Editor = () =>{
-
-    const liveblocks = useLiveblocksExtension();
-
+    const liveblocks = useLiveblocksExtension(); 
+    
     const { setEditor } = useEditorStore();
 
 const editor = useEditor({
@@ -65,7 +64,7 @@ const editor = useEditor({
         },
     },
     extensions: [
-        liveblocks,
+        liveblocks, 
         StarterKit.configure({
             history: false,
         }),
